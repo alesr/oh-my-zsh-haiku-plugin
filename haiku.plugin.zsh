@@ -1,12 +1,11 @@
 # Haiku (chat-gpt powered) plugin for oh-my-zsh
 # ----------------
-# Description: This plugin will print a haiku promoting work-life balance and stress management once every 24 hours if your terminal has been open for more than 3 hours.
+# Description: Displays a work-life balance and stress management haiku once every 24 hours when the terminal is open.
 # Author: Alessandro Resta (alesr)
 # URL: https://github.com/alesr/haiku
 
 function haiku_check_duration() {
     local haiku_file=~/.haikuplugin_last_run
-    local period=10800 # 3 hours
     local interval=86400 # 24 hours
     local last_run=$(cat $haiku_file 2> /dev/null)
 
@@ -15,11 +14,14 @@ function haiku_check_duration() {
     fi
 
     local now=$(date +%s)
-    local duration=$((now - last_run))
-    local is_open_for_more_than_3_hours=$(echo "$duration > $period" | bc)
-    local printed_in_last_24_hours=$(echo "$duration < $interval" | bc)
+    local time_since_last_run=$((now - last_run))
 
-    if [[ $is_open_for_more_than_3_hours -eq 1 && $printed_in_last_24_hours -eq 0 ]]; then
+    local printed_in_last_24_hours=0
+    if [[ $time_since_last_run -lt $interval ]]; then
+        printed_in_last_24_hours=1
+    fi
+    
+    if [[ $printed_in_last_24_hours -eq 0 ]]; then
         check_api_key || return 1
         check_curl_or_wget || return 1
         check_jq || return 1
